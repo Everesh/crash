@@ -1,0 +1,2 @@
+# crash
+POSIX-adjacent shell
