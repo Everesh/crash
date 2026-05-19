@@ -39,7 +39,7 @@ func (s *Shell) Run() {
 		args := rawCmd[1:]
 
 		if handler, exists := builtins.Registry[cmd]; exists {
-			handler(args)
+			handler.Handle(args)
 
 		} else if _, err := exec.LookPath(cmd); err == nil {
 			child := exec.Command(cmd, args...)

@@ -21,3 +21,13 @@ func handleType(args []string) {
 		fmt.Printf("%s: not found\n", cmd)
 	}
 }
+
+func tldrType() string {
+	// TODO
+	return ""
+}
+
+func manType() string {
+	// TODO
+	return ""
+}

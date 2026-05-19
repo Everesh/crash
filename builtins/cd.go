@@ -21,3 +21,13 @@ func handleCd(args []string) {
 		fmt.Printf("cd: %s: No such file or directory\n", target)
 	}
 }
+
+func tldrCd() string {
+	// TODO
+	return ""
+}
+
+func manCd() string {
+	// TODO
+	return ""
+}

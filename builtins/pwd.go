@@ -13,3 +13,13 @@ func handlePwd(args []string) {
 
 	fmt.Println(pwd)
 }
+
+func tldrPwd() string {
+	// TODO
+	return ""
+}
+
+func manPwd() string {
+	// TODO
+	return ""
+}
