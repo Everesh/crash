@@ -1,24 +1,31 @@
 # MVP rush
 
-[x] Basic REPL
-[x] Basic Builtins
-- [x] Registry of builtins with sane api surface
-- [x] exit
-- [x] echo
-- [x] pwd
-- [x] cd
-- [x] type
-[ ] Basic Quoting
-[ ] Basic Stdio Redirection
-[ ] Basic Completion
-- [ ] Command Completion
-- [ ] Filename Completion
-- [ ] Programable Completion
-[ ] Basic Background Jobs
-[ ] Basic Pipelines
-[ ] Basic History
-- [ ] History Persistence
-[ ] Basic Parameter Expansion
+- [x] Basic REPL
+- [x] Basic Builtins
+  - [x] Registry of builtins with sane api surface
+  - [x] exit
+  - [x] echo
+  - [x] pwd
+  - [x] cd
+  - [x] type
+  - [ ] command
+    - [ ] `-v` arg <!-- needed for silent bin discovery, I don't want to rely on `which` too hard here -->
+- [ ] Lexer 
+  - [ ] Basic Quoting
+  - [ ] Builtins for Help w/fallback to coresponding binaries
+    - [ ] `?` tldr like
+    - [ ] `???` man like
+- [ ] Tokenizer 
+- [ ] Basic Stdio Redirection
+- [ ] Basic Completion
+  - [ ] Command Completion
+  - [ ] Filename Completion
+  - [ ] Programable Completion
+- [ ] Basic Background Jobs
+- [ ] Basic Pipelines
+- [ ] Basic History
+  - [ ] History Persistence
+- [ ] Basic Parameter Expansion
 
 # POSIX
 See: https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html
