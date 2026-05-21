@@ -8,7 +8,7 @@ import (
 
 func handleCd(_ Registry, args []string) {
 	if len(args) > 1 {
-		fmt.Println("cd: invalid amount of arguments")
+		fmt.Println("cd: too many arguments")
 		return
 	}
 

@@ -6,8 +6,13 @@ import (
 )
 
 func handleType(builtins Registry, args []string) {
-	if len(args) == 0 {
+	if len(args) < 1 {
 		fmt.Println("type: missing argument")
+		return
+	}
+
+	if len(args) > 1 {
+		fmt.Println("type: too many arguments")
 		return
 	}
 
