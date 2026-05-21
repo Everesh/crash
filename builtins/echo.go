@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func handleEcho(args []string) {
+func handleEcho(_ Registry, args []string) {
 	fmt.Println(strings.Join(args, " "))
 }
 

@@ -11,12 +11,14 @@ import (
 )
 
 type Shell struct {
-	reader *bufio.Reader
+	reader   *bufio.Reader
+	builtins builtins.Registry
 }
 
 func New() *Shell {
 	return &Shell{
-		reader: bufio.NewReader(os.Stdin),
+		reader:   bufio.NewReader(os.Stdin),
+		builtins: builtins.NewRegistry(),
 	}
 }
 
@@ -38,8 +40,9 @@ func (s *Shell) Run() {
 		cmd := rawCmd[0]
 		args := rawCmd[1:]
 
-		if handler, exists := builtins.Registry[cmd]; exists {
-			handler.Handle(args)
+		if builtin, exists := s.builtins[cmd]; exists {
+			// builtins is a map, maps pass by reference, no `&s.builtins` is needed
+			builtin.Handle(s.builtins, args)
 
 		} else if _, err := exec.LookPath(cmd); err == nil {
 			child := exec.Command(cmd, args...)

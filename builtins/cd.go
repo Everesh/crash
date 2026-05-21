@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func handleCd(args []string) {
+func handleCd(_ Registry, args []string) {
 	if len(args) > 1 {
 		fmt.Println("cd: invalid amount of arguments")
 		return

@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func handlePwd(args []string) {
+func handlePwd(_ Registry, args []string) {
 	pwd, err := os.Getwd()
 	if err != nil {
 		fmt.Println("error fetching working directory")

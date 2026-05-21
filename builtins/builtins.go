@@ -1,17 +1,19 @@
 package builtins
 
-type CommandHandler struct {
-	Handle func(args []string)
+type Builtin struct {
+	Handle func(registry Registry, args []string)
 	Tldr   func() string // tldr.sh like help
 	Man    func() string // man like help
 }
 
-var Registry = make(map[string]CommandHandler)
+type Registry map[string]Builtin
 
-func init() {
-	Registry["exit"] = CommandHandler{Handle: handleExit, Tldr: tldrExit, Man: manExit}
-	Registry["echo"] = CommandHandler{Handle: handleEcho, Tldr: tldrEcho, Man: manEcho}
-	Registry["type"] = CommandHandler{Handle: handleType, Tldr: tldrType, Man: manType}
-	Registry["pwd"] = CommandHandler{Handle: handlePwd, Tldr: tldrPwd, Man: manPwd}
-	Registry["cd"] = CommandHandler{Handle: handleCd, Tldr: tldrCd, Man: manCd}
+func NewRegistry() Registry {
+	r := make(Registry)
+	r["exit"] = Builtin{Handle: handleExit, Tldr: tldrExit, Man: manExit}
+	r["echo"] = Builtin{Handle: handleEcho, Tldr: tldrEcho, Man: manEcho}
+	r["type"] = Builtin{Handle: handleType, Tldr: tldrType, Man: manType}
+	r["pwd"] = Builtin{Handle: handlePwd, Tldr: tldrPwd, Man: manPwd}
+	r["cd"] = Builtin{Handle: handleCd, Tldr: tldrCd, Man: manCd}
+	return r
 }
