@@ -19,6 +19,7 @@ func handleCd(_ Registry, args []string) {
 
 	if err := os.Chdir(target); err != nil {
 		fmt.Printf("cd: %s: No such file or directory\n", target)
+		return
 	}
 }
 

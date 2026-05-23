@@ -12,8 +12,9 @@ func NewRegistry() Registry {
 	r := make(Registry)
 	r["exit"] = Builtin{Handle: handleExit, Tldr: tldrExit, Man: manExit}
 	r["echo"] = Builtin{Handle: handleEcho, Tldr: tldrEcho, Man: manEcho}
-	r["type"] = Builtin{Handle: handleType, Tldr: tldrType, Man: manType}
 	r["pwd"] = Builtin{Handle: handlePwd, Tldr: tldrPwd, Man: manPwd}
 	r["cd"] = Builtin{Handle: handleCd, Tldr: tldrCd, Man: manCd}
+	r["type"] = Builtin{Handle: handleType, Tldr: tldrType, Man: manType}
+	r["command"] = Builtin{Handle: handleCommand, Tldr: tldrCommand, Man: manCommand}
 	return r
 }
