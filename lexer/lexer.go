@@ -36,10 +36,15 @@ func Parse(str string) []string {
 			if skipTo == ' ' {
 				escaped = true
 			} else {
+				chunk += string(v)
 			}
 
 		case '"', '\'':
-			skipTo = v
+			if skipTo == ' ' {
+				skipTo = v
+			} else {
+				chunk += string(v)
+			}
 
 		case '\n':
 			continue
