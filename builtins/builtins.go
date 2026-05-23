@@ -16,5 +16,6 @@ func NewRegistry() Registry {
 	r["cd"] = Builtin{Handle: handleCd, Tldr: tldrCd, Man: manCd}
 	r["type"] = Builtin{Handle: handleType, Tldr: tldrType, Man: manType}
 	r["command"] = Builtin{Handle: handleCommand, Tldr: tldrCommand, Man: manCommand}
+	r["tokenize"] = Builtin{Handle: handleTokenize, Tldr: tldrTokenize, Man: manTokenize}
 	return r
 }

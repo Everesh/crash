@@ -3,11 +3,13 @@ package shell
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
-	"strings"
 
 	"github.com/Everesh/crash/builtins"
+	"github.com/Everesh/crash/config"
+	"github.com/Everesh/crash/lexer"
 )
 
 type Shell struct {
@@ -24,15 +26,20 @@ func New() *Shell {
 
 func (s *Shell) Run() {
 	for {
-		fmt.Print("$ ")
+		fmt.Print(config.PS1)
 
 		line, err := s.reader.ReadString('\n')
 		if err != nil {
+			if err == io.EOF {
+				fmt.Println()
+				os.Exit(0)
+			}
+
 			fmt.Fprintln(os.Stderr, "error reading input:", err)
 			os.Exit(1)
 		}
 
-		rawCmd := strings.Fields(strings.TrimSpace(line))
+		rawCmd := lexer.Parse(line)
 		if len(rawCmd) == 0 {
 			continue
 		}
@@ -46,6 +53,7 @@ func (s *Shell) Run() {
 
 		} else if _, err := exec.LookPath(cmd); err == nil {
 			child := exec.Command(cmd, args...)
+			child.Stdin = os.Stdin
 			child.Stdout = os.Stdout
 			child.Stderr = os.Stderr
 

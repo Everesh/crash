@@ -27,6 +27,7 @@ func handleCommand(_ Registry, args []string) {
 	}
 
 	child := exec.Command(cmd, args[1:]...)
+	child.Stdin = os.Stdin
 	child.Stdout = os.Stdout
 	child.Stderr = os.Stderr
 

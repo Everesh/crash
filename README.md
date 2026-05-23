@@ -16,8 +16,8 @@ POSIX-adjacent shell, heavy WIP
   - [x] type
   - [x] command
     - [ ] `-v` arg <!-- needed for silent bin discovery, I don't want to rely on `which` too hard here -->
-- [ ] Lexer 
-  - [ ] Basic Quoting
+- [x] Lexer 
+  - [x] Basic Quoting
   - [ ] Builtins for Help w/fallback to coresponding binaries
     - [ ] `?` tldr like
     - [ ] `???` man like
