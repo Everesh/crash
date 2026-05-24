@@ -23,7 +23,8 @@ func New() *Shell {
 
 func (s *Shell) Repl() {
 	rl, err := readline.NewEx(&readline.Config{
-		Prompt: config.PS1,
+		Prompt:  config.PS1,
+		VimMode: config.VimMode,
 	})
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "readline:", err)
@@ -41,14 +42,14 @@ func (s *Shell) Repl() {
 			return
 		}
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "error reading input:", err)
+			fmt.Fprint(os.Stderr, "error reading input:", err)
 			rl.Close()
 			os.Exit(1)
 		}
 
 		err = s.Eval(line, os.Stdout)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "error reading input:", err)
+			fmt.Fprint(os.Stderr, err)
 			continue
 		}
 	}

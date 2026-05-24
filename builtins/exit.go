@@ -7,6 +7,9 @@ import (
 	"strconv"
 )
 
+// raw os.Exit leaves readline unclosed, but every solution I came up with was
+// just a bunch of external state which eww or overcomplicating the handler api
+// for now Im just going to let the kernel restore the terminal attributes
 func handleExit(_ io.Writer, args []string) error {
 	if len(args) == 0 {
 		os.Exit(0)
