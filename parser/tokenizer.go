@@ -25,7 +25,7 @@ func Tokenize(s string) ([]string, error) {
 		tokens = append(tokens, word)
 	}
 
-	return tokens, nil
+	return expand(tokens), nil
 }
 
 func readWord(l *lexer, first rune) (string, error) {
