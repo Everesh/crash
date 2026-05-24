@@ -23,9 +23,9 @@ POSIX-adjacent shell, heavy WIP
     - [ ] `???` man like
 - [x] Tokenizer 
 - [ ] Basic Stdio Redirection
-- [ ] Basic Completion
-  - [ ] Command Completion
-  - [ ] Filename Completion
+- [x] Basic Completion
+  - [x] Command Completion
+  - [x] Filename Completion
   - [ ] Programable Completion
 - [ ] Basic Background Jobs
 - [ ] Basic Pipelines
