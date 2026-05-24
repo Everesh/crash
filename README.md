@@ -1,6 +1,32 @@
 # crash
 POSIX-adjacent shell, heavy WIP
 
+[![asciicast](https://asciinema.org/a/8sF6LIQqXPMxatdA.svg)](https://asciinema.org/a/8sF6LIQqXPMxatdA)
+
+## Installation
+
+1. Get yourself the [`Go` toolchain](https://go.dev/)
+2. Clone and build:
+```sh
+git clone https://github.com/Everesh/crash
+cd crash
+go build -o crash .
+```
+
+## Running
+
+```sh
+./crash
+```
+
+> [!TIP]
+you can set it as your shell of choice in terminal emulators (I wouldn't tho) e.g.
+```toml
+# ~/.config/alacritty/alacritty.toml
+[terminal]
+shell = "/path/to/the/bin"
+```
+
 ---
 
 # TODO
