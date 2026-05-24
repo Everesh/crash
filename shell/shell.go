@@ -1,11 +1,12 @@
 package shell
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
+
+	"github.com/chzyer/readline"
 
 	"github.com/Everesh/crash/builtins"
 	"github.com/Everesh/crash/config"
@@ -13,34 +14,42 @@ import (
 )
 
 type Shell struct {
-	reader   *bufio.Reader
 	builtins builtins.Registry
 }
 
 func New() *Shell {
-	return &Shell{
-		reader:   bufio.NewReader(os.Stdin),
-		builtins: builtins.NewRegistry(),
-	}
+	return &Shell{builtins: builtins.NewRegistry()}
 }
 
 func (s *Shell) Repl() {
+	rl, err := readline.NewEx(&readline.Config{
+		Prompt: config.PS1,
+	})
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "readline:", err)
+		os.Exit(1)
+	}
+	defer rl.Close()
+
 	for {
-		fmt.Print(config.PS1)
-
-		line, err := s.reader.ReadString('\n')
+		line, err := rl.Readline()
+		if err == readline.ErrInterrupt {
+			continue
+		}
+		if err == io.EOF {
+			fmt.Println()
+			return
+		}
 		if err != nil {
-			if err == io.EOF {
-				fmt.Println()
-				os.Exit(0)
-			}
-
 			fmt.Fprintln(os.Stderr, "error reading input:", err)
+			rl.Close()
 			os.Exit(1)
 		}
 
-		if err := s.Eval(line, os.Stdout); err != nil {
-			fmt.Print(err)
+		err = s.Eval(line, os.Stdout)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "error reading input:", err)
+			continue
 		}
 	}
 }
@@ -48,8 +57,9 @@ func (s *Shell) Repl() {
 func (s *Shell) Eval(input string, out io.Writer) error {
 	rawCmd, err := parser.Tokenize(input)
 	if err != nil {
-		return fmt.Errorf("parse error: %w", err)
-	} else if len(rawCmd) == 0 {
+		return fmt.Errorf("parse error: %s\n", err)
+	}
+	if len(rawCmd) == 0 {
 		return nil
 	}
 
@@ -57,14 +67,22 @@ func (s *Shell) Eval(input string, out io.Writer) error {
 	args := rawCmd[1:]
 
 	if builtin, exists := s.builtins[cmd]; exists {
-		return builtin.Handle(out, args)
-	} else if _, err := exec.LookPath(cmd); err == nil {
-		child := exec.Command(cmd, args...)
-		child.Stdin = os.Stdin
-		child.Stdout = out
-		child.Stderr = os.Stderr
-		return child.Run()
-	} else {
+		if err := builtin.Handle(out, args); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if _, err := exec.LookPath(cmd); err != nil {
 		return fmt.Errorf("%s: command not found\n", cmd)
 	}
+
+	child := exec.Command(cmd, args...)
+	child.Stdin = os.Stdin
+	child.Stdout = out
+	child.Stderr = os.Stderr
+	if err := child.Run(); err != nil {
+		return err
+	}
+	return nil
 }
