@@ -1,7 +1,7 @@
 package builtins
 
 type Builtin struct {
-	Handle func(registry Registry, args []string)
+	Handle func(registry Registry, args []string) (string, error)
 	Tldr   func() string // tldr.sh like help
 	Man    func() string // man like help
 }

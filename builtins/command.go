@@ -9,21 +9,18 @@ import (
 
 // TODO - handle flags -v -p
 
-func handleCommand(_ Registry, args []string) {
+func handleCommand(_ Registry, args []string) (string, error) {
 	if len(args) < 1 {
-		fmt.Println("command: missing argument")
-		return
+		return "", fmt.Errorf("command: missing argument\n")
 	}
 
 	cmd := args[0]
 	if strings.HasPrefix(cmd, "-") {
-		fmt.Println("command: flags not yet implemented")
-		return
+		return "", fmt.Errorf("command: flags not yet implemented\n")
 	}
 
 	if _, err := exec.LookPath(cmd); err != nil {
-		fmt.Printf("command: %s: no such command in path\n", cmd)
-		return
+		return "", fmt.Errorf("command: %s: no such command in path\n", cmd)
 	}
 
 	child := exec.Command(cmd, args[1:]...)
@@ -32,10 +29,10 @@ func handleCommand(_ Registry, args []string) {
 	child.Stderr = os.Stderr
 
 	if err := child.Run(); err != nil {
-		fmt.Fprintln(os.Stderr, "command: error running command:", err)
-		return
+		return "", fmt.Errorf("command: error running command:", err)
 	}
 
+	return "", nil
 }
 
 func tldrCommand() string {

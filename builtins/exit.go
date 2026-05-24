@@ -6,28 +6,26 @@ import (
 	"strconv"
 )
 
-func handleExit(_ Registry, args []string) {
+func handleExit(_ Registry, args []string) (string, error) {
 	if len(args) == 0 {
 		os.Exit(0)
 	}
 	if len(args) > 1 {
-		fmt.Fprintln(os.Stderr, "exit: too many arguments")
-		return
+		return "", fmt.Errorf("exit: too many arguments\n")
 	}
 
 	code, err := strconv.Atoi(args[0])
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "exit: %s: invalid argument\n", args[0])
-		return
+		return "", fmt.Errorf("exit: %s: invalid argument\n", args[0])
 	}
 
 	if code < 0 || code > 255 {
-		fmt.Fprintf(os.Stderr, "exit: %d: out of range 0-255\n", code)
-		return
+		return "", fmt.Errorf("exit: %d: out of range 0-255\n", code)
 	}
 
 	os.Exit(code)
+	return "", fmt.Errorf("exit: os.Exit(%d) failed: this should be impossible O.o", code)
 }
 
 func tldrExit() string {

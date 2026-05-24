@@ -6,10 +6,9 @@ import (
 	"strings"
 )
 
-func handleCd(_ Registry, args []string) {
+func handleCd(_ Registry, args []string) (string, error) {
 	if len(args) > 1 {
-		fmt.Println("cd: too many arguments")
-		return
+		return "", fmt.Errorf("cd: too many arguments\n")
 	}
 
 	target := os.Getenv("HOME")
@@ -18,9 +17,10 @@ func handleCd(_ Registry, args []string) {
 	}
 
 	if err := os.Chdir(target); err != nil {
-		fmt.Printf("cd: %s: No such file or directory\n", target)
-		return
+		return "", fmt.Errorf("cd: %s: No such file or directory\n", target)
 	}
+
+	return "", nil
 }
 
 func tldrCd() string {

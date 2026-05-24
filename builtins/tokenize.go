@@ -4,14 +4,14 @@ import (
 	"fmt"
 )
 
-func handleTokenize(_ Registry, args []string) {
+func handleTokenize(_ Registry, args []string) (string, error) {
 	// I could pass in raw line, but since this is already tokenized w/e
-	fmt.Println("[")
+	o := "[\n"
 	for _, arg := range args {
-		fmt.Printf("  \"%s\",\n", arg)
+		o += fmt.Sprintf("  \"%s\",\n", arg)
 	}
-	fmt.Println("]")
 
+	return o + "]\n", nil
 }
 
 func tldrTokenize() string {

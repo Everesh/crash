@@ -5,25 +5,23 @@ import (
 	"os/exec"
 )
 
-func handleType(builtins Registry, args []string) {
+func handleType(builtins Registry, args []string) (string, error) {
 	if len(args) < 1 {
-		fmt.Println("type: missing argument")
-		return
+		return "", fmt.Errorf("type: missing argument\n")
 	}
 
 	if len(args) > 1 {
-		fmt.Println("type: too many arguments")
-		return
+		return "", fmt.Errorf("type: too many arguments\n")
 	}
 
 	cmd := args[0]
 
 	if _, exists := builtins[cmd]; exists {
-		fmt.Printf("%s is a shell builtin\n", cmd)
+		return fmt.Sprintf("%s is a shell builtin\n", cmd), nil
 	} else if path, _ := exec.LookPath(cmd); path != "" {
-		fmt.Printf("%s is %s\n", cmd, path)
+		return fmt.Sprintf("%s is %s\n", cmd, path), nil
 	} else {
-		fmt.Printf("%s: not found\n", cmd)
+		return fmt.Sprintf("%s: not found\n", cmd), nil
 	}
 }
 

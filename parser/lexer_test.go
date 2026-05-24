@@ -1,4 +1,4 @@
-package lexer
+package parser
 
 import (
 	"os"
@@ -82,7 +82,7 @@ func TestParse(t *testing.T) {
 				}()
 			}
 
-			actual := Parse(tt.input)
+			actual, _ := Tokenize(tt.input)
 
 			if !reflect.DeepEqual(actual, tt.expected) {
 				t.Errorf("\nParser failed for test: %q\nInput:    %s\nExpected: %v\nActual:   %v",

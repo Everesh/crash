@@ -9,7 +9,7 @@ import (
 
 	"github.com/Everesh/crash/builtins"
 	"github.com/Everesh/crash/config"
-	"github.com/Everesh/crash/lexer"
+	"github.com/Everesh/crash/parser"
 )
 
 type Shell struct {
@@ -39,30 +39,48 @@ func (s *Shell) Run() {
 			os.Exit(1)
 		}
 
-		rawCmd := lexer.Parse(line)
-		if len(rawCmd) == 0 {
-			continue
-		}
+		o, err := s.Eval(line)
+		if err != nil {
+			fmt.Print(err)
 
-		cmd := rawCmd[0]
-		args := rawCmd[1:]
-
-		if builtin, exists := s.builtins[cmd]; exists {
-			// builtins is a map, maps pass by reference, no `&s.builtins` is needed
-			builtin.Handle(s.builtins, args)
-
-		} else if _, err := exec.LookPath(cmd); err == nil {
-			child := exec.Command(cmd, args...)
-			child.Stdin = os.Stdin
-			child.Stdout = os.Stdout
-			child.Stderr = os.Stderr
-
-			if err := child.Run(); err != nil {
-				fmt.Fprintln(os.Stderr, "error running command:", err)
-			}
-
-		} else {
-			fmt.Printf("%s: command not found\n", cmd)
+		} else if o != "" {
+			fmt.Print(o)
 		}
 	}
+}
+
+func (s *Shell) Eval(input string) (string, error) {
+	rawCmd, err := parser.Tokenize(input)
+	if err != nil {
+	    return "", fmt.Errorf("parse error: %w", err)
+	} else if len(rawCmd) == 0 {
+		return "", nil
+	}
+
+	cmd := rawCmd[0]
+	args := rawCmd[1:]
+	output := ""
+
+	if builtin, exists := s.builtins[cmd]; exists {
+		o, err := builtin.Handle(s.builtins, args)
+		if err != nil {
+			return "", err
+		}
+		output = o
+
+	} else if _, err := exec.LookPath(cmd); err == nil {
+		child := exec.Command(cmd, args...)
+		child.Stdin = os.Stdin
+		child.Stdout = os.Stdout
+		child.Stderr = os.Stderr
+
+		if err := child.Run(); err != nil {
+    		return "", err
+		}
+
+	} else {
+		return "", fmt.Errorf("%s: command not found\n", cmd)
+	}
+
+	return output, nil
 }

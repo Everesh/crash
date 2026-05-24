@@ -5,14 +5,13 @@ import (
 	"os"
 )
 
-func handlePwd(_ Registry, args []string) {
+func handlePwd(_ Registry, args []string) (string, error) {
 	pwd, err := os.Getwd()
 	if err != nil {
-		fmt.Println("pwd: failed to fetch working directory")
-		return
+		return "", fmt.Errorf("pwd: failed to fetch working directory\n")
 	}
 
-	fmt.Println(pwd)
+	return pwd + "\n", nil
 }
 
 func tldrPwd() string {
