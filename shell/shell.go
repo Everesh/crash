@@ -24,7 +24,7 @@ func New() *Shell {
 	}
 }
 
-func (s *Shell) Run() {
+func (s *Shell) Repl() {
 	for {
 		fmt.Print(config.PS1)
 
@@ -39,48 +39,32 @@ func (s *Shell) Run() {
 			os.Exit(1)
 		}
 
-		o, err := s.Eval(line)
-		if err != nil {
+		if err := s.Eval(line, os.Stdout); err != nil {
 			fmt.Print(err)
-
-		} else if o != "" {
-			fmt.Print(o)
 		}
 	}
 }
 
-func (s *Shell) Eval(input string) (string, error) {
+func (s *Shell) Eval(input string, out io.Writer) error {
 	rawCmd, err := parser.Tokenize(input)
 	if err != nil {
-	    return "", fmt.Errorf("parse error: %w", err)
+		return fmt.Errorf("parse error: %w", err)
 	} else if len(rawCmd) == 0 {
-		return "", nil
+		return nil
 	}
 
 	cmd := rawCmd[0]
 	args := rawCmd[1:]
-	output := ""
 
 	if builtin, exists := s.builtins[cmd]; exists {
-		o, err := builtin.Handle(s.builtins, args)
-		if err != nil {
-			return "", err
-		}
-		output = o
-
+		return builtin.Handle(out, args)
 	} else if _, err := exec.LookPath(cmd); err == nil {
 		child := exec.Command(cmd, args...)
 		child.Stdin = os.Stdin
-		child.Stdout = os.Stdout
+		child.Stdout = out
 		child.Stderr = os.Stderr
-
-		if err := child.Run(); err != nil {
-    		return "", err
-		}
-
+		return child.Run()
 	} else {
-		return "", fmt.Errorf("%s: command not found\n", cmd)
+		return fmt.Errorf("%s: command not found\n", cmd)
 	}
-
-	return output, nil
 }

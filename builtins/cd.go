@@ -2,13 +2,14 @@ package builtins
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strings"
 )
 
-func handleCd(_ Registry, args []string) (string, error) {
+func handleCd(_ io.Writer, args []string) error {
 	if len(args) > 1 {
-		return "", fmt.Errorf("cd: too many arguments\n")
+		return fmt.Errorf("cd: too many arguments\n")
 	}
 
 	target := os.Getenv("HOME")
@@ -17,10 +18,10 @@ func handleCd(_ Registry, args []string) (string, error) {
 	}
 
 	if err := os.Chdir(target); err != nil {
-		return "", fmt.Errorf("cd: %s: No such file or directory\n", target)
+		return fmt.Errorf("cd: %s: No such file or directory\n", target)
 	}
 
-	return "", nil
+	return nil
 }
 
 func tldrCd() string {

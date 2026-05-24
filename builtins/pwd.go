@@ -2,16 +2,18 @@ package builtins
 
 import (
 	"fmt"
+	"io"
 	"os"
 )
 
-func handlePwd(_ Registry, args []string) (string, error) {
+func handlePwd(out io.Writer, args []string) error {
 	pwd, err := os.Getwd()
 	if err != nil {
-		return "", fmt.Errorf("pwd: failed to fetch working directory\n")
+		return fmt.Errorf("pwd: failed to fetch working directory\n")
 	}
 
-	return pwd + "\n", nil
+	_, err = fmt.Fprintln(out, pwd)
+	return err
 }
 
 func tldrPwd() string {

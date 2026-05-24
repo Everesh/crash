@@ -1,11 +1,14 @@
 package builtins
 
 import (
+	"fmt"
+	"io"
 	"strings"
 )
 
-func handleEcho(_ Registry, args []string) (string, error) {
-	return strings.Join(args, " ") + "\n", nil
+func handleEcho(out io.Writer, args []string) error {
+	_, err := fmt.Fprintln(out, strings.Join(args, " "))
+	return err
 }
 
 func tldrEcho() string {
