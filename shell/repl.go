@@ -14,7 +14,7 @@ func (s *Shell) Repl() {
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt:       config.PS1,
 		VimMode:      config.VimMode,
-		AutoComplete: s.completer(),
+		AutoComplete: completer(s),
 	})
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "readline:", err)
@@ -57,12 +57,4 @@ func (s *Shell) Repl() {
 			fmt.Fprint(os.Stderr, err)
 		}
 	}
-}
-
-func (s *Shell) completer() readline.AutoCompleter {
-	items := make([]readline.PrefixCompleterInterface, 0, len(s.builtins))
-	for name := range s.builtins {
-		items = append(items, readline.PcItem(name))
-	}
-	return readline.NewPrefixCompleter(items...)
 }
