@@ -2,95 +2,109 @@ package parser
 
 import (
 	"fmt"
-	"slices"
-
-	"github.com/Everesh/crash/config"
+	"strings"
 )
 
-func Tokenize(str string) ([]string, error) {
-	chunks := make([]string, 0)
-	chunk := ""
-	lexer := NewLexer(str)
+func Tokenize(s string) ([]string, error) {
+	l := newLexer(s)
+	var tokens []string
 
 	for {
-		rune, ok, err := lexer.Next(true)
+		r, ok := l.next()
+		if !ok {
+			break
+		}
+		if isSpace(r) {
+			continue
+		}
+
+		word, err := readWord(l, r)
 		if err != nil {
 			return nil, err
 		}
-		if !ok {
-			break // end of lexer
-		}
+		tokens = append(tokens, word)
+	}
 
+	return tokens, nil
+}
+
+func readWord(l *lexer, first rune) (string, error) {
+	var b strings.Builder
+	r := first
+
+	for {
 		switch {
-		case slices.Contains(config.LexerConf.Space, rune):
-			if chunk != "" {
-				chunks = append(chunks, chunk)
-				chunk = ""
+		case isSpace(r):
+			return b.String(), nil
+		case r == '\\':
+			next, ok := l.next()
+			if !ok {
+				return "", fmt.Errorf("unexpected EOF after backslash")
 			}
-		case slices.Contains(config.LexerConf.Glob, rune):
-			innerChunk, err := glob(lexer, rune)
-			if err != nil {
-				return nil, err
+			b.WriteRune(next)
+		case r == '\'':
+			if err := readSingleQuote(l, &b); err != nil {
+				return "", err
 			}
-			chunk += innerChunk
-		case slices.Contains(config.LexerConf.EvalGlob, rune):
-			innerChunk, err := evalGlob(lexer, rune)
-			if err != nil {
-				return nil, err
+		case r == '"':
+			if err := readDoubleQuote(l, &b); err != nil {
+				return "", err
 			}
-			chunk += innerChunk
 		default:
-			chunk += string(rune)
+			b.WriteRune(r)
 		}
-	}
 
-	if chunk != "" {
-		chunks = append(chunks, chunk)
+		next, ok := l.next()
+		if !ok {
+			return b.String(), nil
+		}
+		r = next
 	}
-
-	return chunks, nil
 }
 
-func glob(lexer *Lexer, delimeter rune) (string, error) {
-	chunk := ""
+func readSingleQuote(l *lexer, b *strings.Builder) error {
 	for {
-		rune, ok, err := lexer.Next(false)
-		if err != nil {
-			return "", err
-		}
+		r, ok := l.next()
 		if !ok {
-			return "", fmt.Errorf(
-				"lexer: tokenizer: glob: missing closure for %c",
-				delimeter) // end of lexer
+			return fmt.Errorf("unterminated single quote")
 		}
-		if rune == delimeter {
-			break
+		if r == '\'' {
+			return nil
 		}
-
-		chunk += string(rune)
+		b.WriteRune(r)
 	}
-
-	return chunk, nil
 }
 
-func evalGlob(lexer *Lexer, delimeter rune) (string, error) {
-	chunk := ""
+func readDoubleQuote(l *lexer, b *strings.Builder) error {
 	for {
-		rune, ok, err := lexer.Next(false)
-		if err != nil {
-			return "", err
-		}
+		r, ok := l.next()
 		if !ok {
-			return "", fmt.Errorf(
-				"lexer: tokenizer: evalGlob: missing closure for %c",
-				delimeter) // end of lexer
-		}
-		if rune == delimeter {
-			break
+			return fmt.Errorf("unterminated double quote")
 		}
 
-		chunk += string(rune)
+		switch r {
+		case '"':
+			return nil
+		// Only escapes $, `, ", \, and \n
+		// see: www.gnu.org/software/bash/manual/html_node/Double-Quotes.html
+		case '\\':
+			next, ok := l.next()
+			if !ok {
+				return fmt.Errorf("unterminated double quote")
+			}
+			switch next {
+			case '$', '`', '"', '\\', '\n':
+				b.WriteRune(next)
+			default:
+				b.WriteRune('\\')
+				b.WriteRune(next)
+			}
+		default:
+			b.WriteRune(r)
+		}
 	}
+}
 
-	return chunk, nil
+func isSpace(r rune) bool {
+	return r == ' ' || r == '\t' || r == '\n' || r == '\r'
 }

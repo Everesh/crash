@@ -1,46 +1,26 @@
 package parser
 
-import (
-	"fmt"
-	"slices"
-
-	"github.com/Everesh/crash/config"
-)
-
-type Lexer struct {
+type lexer struct {
 	runes []rune
 	pos   int
 }
 
-func NewLexer(str string) *Lexer {
-	return &Lexer{runes: []rune(str), pos: 0}
+func newLexer(s string) *lexer {
+	return &lexer{runes: []rune(s)}
 }
 
-func (lexer *Lexer) Next(escape bool) (rune rune, ok bool, err error) {
-	if lexer.pos >= len(lexer.runes) {
-		return 0, false, nil
-	}
-
-	rune = lexer.runes[lexer.pos]
-	lexer.pos++
-
-	if escape && slices.Contains(config.LexerConf.Escape, rune) {
-		if lexer.pos >= len(lexer.runes) {
-			return 0, false, fmt.Errorf(
-				"lexer: next: tailing unescaped escape char %c",
-				rune)
-		}
-
-		rune = lexer.runes[lexer.pos]
-		lexer.pos++
-	}
-
-	return rune, true, nil
-}
-
-func (lexer *Lexer) Peek() (rune, bool) {
-	if lexer.pos >= len(lexer.runes) {
+func (l *lexer) next() (rune, bool) {
+	if l.pos >= len(l.runes) {
 		return 0, false
 	}
-	return lexer.runes[lexer.pos], true
+	r := l.runes[l.pos]
+	l.pos++
+	return r, true
+}
+
+func (l *lexer) peek() (rune, bool) {
+	if l.pos >= len(l.runes) {
+		return 0, false
+	}
+	return l.runes[l.pos], true
 }
