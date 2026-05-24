@@ -21,7 +21,7 @@ POSIX-adjacent shell, heavy WIP
   - [ ] Builtins for Help w/fallback to coresponding binaries
     - [ ] `?` tldr like
     - [ ] `???` man like
-- [ ] Tokenizer 
+- [x] Tokenizer 
 - [ ] Basic Stdio Redirection
 - [ ] Basic Completion
   - [ ] Command Completion
@@ -29,7 +29,7 @@ POSIX-adjacent shell, heavy WIP
   - [ ] Programable Completion
 - [ ] Basic Background Jobs
 - [ ] Basic Pipelines
-- [ ] Basic History
+- [x] Basic History <-- readline gave that for free, FREE I tell you
   - [ ] History Persistence
 - [ ] Basic Parameter Expansion
 
