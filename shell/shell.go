@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/chzyer/readline"
 
@@ -42,15 +43,29 @@ func (s *Shell) Repl() {
 			return
 		}
 		if err != nil {
-			fmt.Fprint(os.Stderr, "error reading input:", err)
+			fmt.Fprintln(os.Stderr, "error reading input:", err)
 			rl.Close()
 			os.Exit(1)
 		}
 
-		err = s.Eval(line, os.Stdout)
-		if err != nil {
-			fmt.Fprint(os.Stderr, err)
+		for strings.HasSuffix(line, "\\") {
+			line = line[:len(line)-1]
+			rl.SetPrompt(config.PS2)
+			cont, err := rl.Readline()
+			if err == readline.ErrInterrupt || err == io.EOF {
+				line = ""
+				break
+			}
+			line += cont
+		}
+		rl.SetPrompt(config.PS1)
+
+		if line == "" {
 			continue
+		}
+
+		if err := s.Eval(line, os.Stdout); err != nil {
+			fmt.Fprint(os.Stderr, err)
 		}
 	}
 }
