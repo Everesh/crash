@@ -30,11 +30,12 @@ shell = "/path/to/the/bin"
 ---
 
 # TODO
-## MVP rush
+## MVP
 
 - [x] Basic REPL
 - [x] Basic Builtins
   - [x] Registry of builtins with sane api surface
+  - [ ] flags parser / splitter (tokenizer should not do this)
   - [x] exit
   - [x] echo
   - [x] pwd
@@ -42,6 +43,7 @@ shell = "/path/to/the/bin"
   - [x] type
   - [x] command
     - [ ] `-v` arg <!-- needed for silent bin discovery, I don't want to rely on `which` too hard here -->
+  - [ ] alias
 - [x] Lexer 
   - [x] Basic Quoting
   - [ ] Builtins for Help w/fallback to coresponding binaries
@@ -54,10 +56,18 @@ shell = "/path/to/the/bin"
   - [x] Filename Completion
   - [ ] Programable Completion
 - [ ] Basic Background Jobs
+  - [ ] orphaned via & suffix
+  - [ ] proper bg / fg
 - [ ] Basic Pipelines
 - [x] Basic History <-- readline gave that for free, FREE I tell you
   - [ ] History Persistence
+    - [ ] XDG_DATA_HOME
 - [ ] Basic Parameter Expansion
+- [ ] Small Ansii lib for text formatting
+
+## Pre-POSIX
+
+- [ ] drop readline and just work with x/term, `chzyer/readline` is a hit or miss, some things are incredible, others drive me crazy
 
 ## POSIX
 See: https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html
