@@ -74,7 +74,7 @@ func (c *shellCompleter) Do(line []rune, pos int) ([][]rune, int) {
 		}
 	}
 
-	if firstWord {
+	if firstWord && !looksLikePath(prefix) {
 		return c.completeCommand(prefix)
 	}
 	return completeFilePath(prefix)
@@ -88,6 +88,13 @@ func (c *shellCompleter) completeCommand(prefix string) ([][]rune, int) {
 		}
 	}
 	return result, len([]rune(prefix))
+}
+
+func looksLikePath(s string) bool {
+	return strings.HasPrefix(s, "/") ||
+		strings.HasPrefix(s, "./") ||
+		strings.HasPrefix(s, "../") ||
+		strings.HasPrefix(s, "~")
 }
 
 func expandTilde(path string) string {
