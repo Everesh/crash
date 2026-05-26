@@ -1,11 +1,13 @@
 package shell
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"strings"
 
+	"github.com/Everesh/crash/builtins"
 	"github.com/Everesh/crash/config"
 	"github.com/chzyer/readline"
 )
@@ -23,7 +25,7 @@ func (s *Shell) Repl() {
 	defer rl.Close()
 
 	for {
-		line, err := rl.Readline()
+		line, err := readLine(rl)
 		if err == readline.ErrInterrupt {
 			continue
 		}
@@ -37,24 +39,43 @@ func (s *Shell) Repl() {
 			os.Exit(1)
 		}
 
-		for strings.HasSuffix(line, "\\") {
-			line = line[:len(line)-1]
-			rl.SetPrompt(config.PS2)
-			cont, err := rl.Readline()
-			if err == readline.ErrInterrupt || err == io.EOF {
-				line = ""
-				break
-			}
-			line += cont
-		}
-		rl.SetPrompt(config.PS1)
-
 		if line == "" {
 			continue
 		}
 
 		if err := s.Eval(line, os.Stdout); err != nil {
+			var exitErr *builtins.ExitError
+			if errors.As(err, &exitErr) {
+				rl.Close()
+				os.Exit(exitErr.Code)
+			}
 			fmt.Fprint(os.Stderr, err)
 		}
 	}
+}
+
+func readLine(rl *readline.Instance) (string, error) {
+	var sb strings.Builder
+	prompt := config.PS1
+	for {
+		rl.SetPrompt(prompt)
+		seg, err := rl.Readline()
+		if err != nil {
+			rl.SetPrompt(config.PS1)
+			if prompt == config.PS2 {
+				// error during continuation: discard partial line
+				return "", readline.ErrInterrupt
+			}
+			return "", err
+		}
+		if strings.HasSuffix(seg, "\\") {
+			sb.WriteString(seg[:len(seg)-1])
+			prompt = config.PS2
+			continue
+		}
+		sb.WriteString(seg)
+		break
+	}
+	rl.SetPrompt(config.PS1)
+	return sb.String(), nil
 }

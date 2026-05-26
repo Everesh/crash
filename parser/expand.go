@@ -5,10 +5,14 @@ import (
 	"strings"
 )
 
-func expand(tokens []string) []string {
-	out := make([]string, len(tokens))
+func expand(tokens []Token) []Token {
+	out := make([]Token, len(tokens))
 	for i, tok := range tokens {
-		out[i] = expandTilde(tok)
+		if tok.Kind == Word {
+			out[i] = Token{Kind: Word, Value: expandTilde(tok.Value)}
+		} else {
+			out[i] = tok
+		}
 	}
 	return out
 }

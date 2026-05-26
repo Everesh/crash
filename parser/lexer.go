@@ -24,3 +24,9 @@ func (l *lexer) peek() (rune, bool) {
 	}
 	return l.runes[l.pos], true
 }
+
+func (l *lexer) backup() {
+	if l.pos > 0 {
+		l.pos--
+	}
+}

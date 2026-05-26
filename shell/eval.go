@@ -10,16 +10,30 @@ import (
 )
 
 func (s *Shell) Eval(input string, out io.Writer) error {
-	rawCmd, err := parser.Tokenize(input)
+	tokens, err := parser.Tokenize(input)
 	if err != nil {
 		return fmt.Errorf("parse error: %s\n", err)
 	}
-	if len(rawCmd) == 0 {
+	if len(tokens) == 0 {
 		return nil
 	}
 
-	cmd := rawCmd[0]
-	args := rawCmd[1:]
+	var words []string
+	for _, tok := range tokens {
+		switch tok.Kind {
+		case parser.Word:
+			words = append(words, tok.Value)
+		default:
+			return fmt.Errorf("%v: operator not yet supported\n", tok.Kind)
+		}
+	}
+
+	if len(words) == 0 {
+		return nil
+	}
+
+	cmd := words[0]
+	args := words[1:]
 
 	if builtin, exists := s.builtins[cmd]; exists {
 		if err := builtin.Handle(out, args); err != nil {
