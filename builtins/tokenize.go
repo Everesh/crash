@@ -20,7 +20,7 @@ func handleTokenize(out io.Writer, args []string) error {
 
 		tokens, err := parser.Tokenize(str)
 		if err != nil {
-			return err
+			return fmt.Errorf("tokenize: %s\n", err)
 		}
 
 		for _, tok := range tokens {
@@ -34,7 +34,7 @@ func handleTokenize(out io.Writer, args []string) error {
 		b.WriteString("],\n")
 	}
 
-	fmt.Print(b.String())
+	fmt.Fprint(out, b.String())
 	return nil
 }
 
