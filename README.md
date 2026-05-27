@@ -68,6 +68,7 @@ shell = "/path/to/the/bin"
 ## Pre-POSIX
 
 - [ ] drop readline and just work with x/term, `chzyer/readline` is a hit or miss, some things are incredible, others drive me crazy
+  - [ ] on the fly syntax highlighting (this should be doable if I own the rl state, I could tokenize on keypress and instead of passing it to eval I could just pass it to formater, save it as rl state and redraw... might be an issue stripping the formatting once applied, maybe a 2 tier system where one []rune slice holds the raw state, the other holds the displayed state? idk, future me will figure this out, right? RIGHT?!)
 
 ## POSIX
 See: https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html
