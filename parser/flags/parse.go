@@ -55,7 +55,7 @@ func resolveFlags(parsed *Parsed, args []string) error {
 					return err
 				}
 			} else {
-				if err := parseShort(parsed, &i, rune(arg[1]), args); err != nil {
+				if err := parseShort(parsed, &i, []rune(arg)[1], args); err != nil {
 					return err
 				}
 			}
