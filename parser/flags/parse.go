@@ -154,22 +154,22 @@ func parseLong(parsed *Parsed, i *int, args []string) error {
 	parts := strings.SplitN(str, "=", 2)
 
 	if len(parts[0]) < 1 {
-		return fmt.Errorf("flags: parseLong: --%s: long flag of 0 length", str)
+		return fmt.Errorf("flags: parseLong: --%s: long flag of 0 length\n", str)
 	}
 
 	flag, exists := parsed.aliases[parts[0]]
 
 	if !exists {
-		return fmt.Errorf("flags: unknown flag --%s", parts[0])
+		return fmt.Errorf("flags: unknown flag --%s\n", parts[0])
 	}
 
 	if _, exists := parsed.values[flag]; exists {
-		return fmt.Errorf("flags: flag --%s was set multiple times", parts[0])
+		return fmt.Errorf("flags: flag --%s was set multiple times\n", parts[0])
 	}
 
 	if !flag.Parametrized {
 		if len(parts) > 1 {
-			return fmt.Errorf("flags: flag --%s does not accept a parameter", parts[0])
+			return fmt.Errorf("flags: flag --%s does not accept a parameter\n", parts[0])
 		}
 		parsed.values[flag] = ""
 		return nil
@@ -179,7 +179,7 @@ func parseLong(parsed *Parsed, i *int, args []string) error {
 	case 1:
 		*i++
 		if *i >= len(args) {
-			return fmt.Errorf("flags: expected --%s to be followed by a parameter, found EOF", parts[0])
+			return fmt.Errorf("flags: expected --%s to be followed by a parameter, found EOF\n", parts[0])
 		}
 		parsed.values[flag] = args[*i]
 	case 2:
@@ -201,11 +201,11 @@ func checkGroupGuards(parsed *Parsed, spec Spec) error {
 		}
 
 		if group.Exclusive && count > 1 {
-			return fmt.Errorf("flags: multiple mutualy exclusive flags set from [%s]", strings.Join(group.Flags, ","))
+			return fmt.Errorf("flags: multiple mutualy exclusive flags set from [%s]\n", strings.Join(group.Flags, ","))
 		}
 
 		if group.Required && count < 1 {
-			return fmt.Errorf("flags: at least one of [%s] must be set", strings.Join(group.Flags, ","))
+			return fmt.Errorf("flags: at least one of [%s] must be set\n", strings.Join(group.Flags, ","))
 		}
 	}
 
@@ -228,7 +228,7 @@ func checkFlagGuards(parsed *Parsed, spec Spec) error {
 		}
 
 		if flag.Required && !parsed.Has(name) {
-			return fmt.Errorf("flags: required flag not set %s%s", dashes, name)
+			return fmt.Errorf("flags: required flag not set %s%s\n", dashes, name)
 		}
 	}
 

@@ -5,32 +5,86 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
+
+	f "github.com/Everesh/crash/parser/flags"
 )
 
-// TODO - handle flags -v -p
+var specCommand = f.Spec{
+	Flags: []f.Flag{
+		{ // show path
+			Short: 'v',
+		},
+		{ // show path prefixed by friendly description (mostly for batching)
+			Short: 'V',
+		},
+		{ // searches hardcoded default UNIX path
+			Short: 'p',
+		},
+	},
+	Groups: []f.Group{
+		{
+			Flags:     []string{"v", "V"},
+			Exclusive: true,
+		},
+	},
+}
 
 func handleCommand(out io.Writer, args []string) error {
-	if len(args) < 1 {
-		return fmt.Errorf("command: missing argument\n")
+	parsed, err := f.Parse(args, specCommand)
+	if err != nil {
+		return err
 	}
 
-	cmd := args[0]
-	if strings.HasPrefix(cmd, "-") {
-		return fmt.Errorf("command: flags not yet implemented\n")
+	if len(parsed.Operands) < 1 {
+		return fmt.Errorf("command: missing argument(s)\n")
 	}
 
-	if _, err := exec.LookPath(cmd); err != nil {
+	cmd := parsed.Operands[0]
+
+	var path string
+	if parsed.Bool("p") {
+		path = "/usr/bin:/bin:/usr/sbin:/sbin"
+	} else {
+		path = os.Getenv("PATH")
+	}
+
+	bin, err := lookInCustomPath(cmd, path)
+	if err != nil {
 		return fmt.Errorf("command: %s: no such command in path\n", cmd)
 	}
 
-	child := exec.Command(cmd, args[1:]...)
-	child.Stdin = os.Stdin
-	child.Stdout = out
-	child.Stderr = os.Stderr
+	switch {
+	case parsed.Bool("V"):
+		fmt.Fprintf(out, "%s is %s\n", cmd, bin)
 
-	if err := child.Run(); err != nil {
-		return fmt.Errorf("command: error running command: %w", err)
+	case parsed.Bool("v"):
+		fmt.Fprintf(out, "%s\n", bin)
+
+	default:
+		var trailingOperands = make([]string, 0)
+		if len(parsed.Operands) > 1 {
+			trailingOperands = append(trailingOperands, parsed.Operands[1:]...)
+		}
+
+		child := exec.Command(bin, trailingOperands...)
+		child.Stdin = os.Stdin
+		child.Stdout = out
+		child.Stderr = os.Stderr
+
+		var cleanEnv []string
+		for _, env := range os.Environ() {
+			if !strings.HasPrefix(env, "PATH=") {
+				cleanEnv = append(cleanEnv, env)
+			}
+		}
+		cleanEnv = append(cleanEnv, "PATH="+path)
+		child.Env = cleanEnv
+
+		if err := child.Run(); err != nil {
+			return fmt.Errorf("command: error running command: %w\n", err)
+		}
 	}
 
 	return nil
@@ -44,4 +98,32 @@ func tldrCommand() string {
 func manCommand() string {
 	// TODO
 	return ""
+}
+
+func lookInCustomPath(file string, customPath string) (string, error) {
+	if filepath.Base(file) != file {
+		return file, nil
+	}
+
+	dirs := filepath.SplitList(customPath)
+	for _, dir := range dirs {
+		// guard for working dir reference in path (either 2 semicolones back to back or a tailing one)
+		if dir == "" {
+			dir = "."
+		}
+		path := filepath.Join(dir, file)
+
+		if d, err := os.Stat(path); err == nil {
+			// this might look weird but very simply, m is the permision metadata of a file,
+			// that data is store as 3 octals, or in binary 111 111 111, we are checking if the file is executable,
+			// executables have at least one of these set xx1 xx1 xx1, we can create a mask of 001 001 001 and do
+			// a bitwise AND (&) on the data, the 0111 is the octal representation of the mask, it could also
+			// be written in binary as 0b001001001 or in decimal as 73, point is, different bases are fun :)
+			if m := d.Mode(); !m.IsDir() && m&0111 != 0 {
+				return path, nil
+			}
+		}
+	}
+
+	return "", &exec.Error{Name: file, Err: exec.ErrNotFound}
 }
