@@ -5,7 +5,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/Everesh/crash/parser"
+	t "github.com/Everesh/crash/parser/tokens"
 )
 
 func handleTokenize(out io.Writer, args []string) error {
@@ -18,13 +18,13 @@ func handleTokenize(out io.Writer, args []string) error {
 	for _, str := range args {
 		b.WriteString("[\n")
 
-		tokens, err := parser.Tokenize(str)
+		tokens, err := t.Tokenize(str)
 		if err != nil {
 			return fmt.Errorf("tokenize: %s\n", err)
 		}
 
 		for _, tok := range tokens {
-			if tok.Kind == parser.Word {
+			if tok.Kind == t.Word {
 				b.WriteString(fmt.Sprintf("  %v(\"%s\"),\n", tok.Kind, tok.Value))
 			} else {
 				b.WriteString(fmt.Sprintf("  %v\n", tok.Kind))

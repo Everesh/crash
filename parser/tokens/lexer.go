@@ -1,4 +1,4 @@
-package parser
+package tokens
 
 type lexer struct {
 	runes []rune

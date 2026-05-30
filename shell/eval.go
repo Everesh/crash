@@ -6,11 +6,11 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/Everesh/crash/parser"
+	t "github.com/Everesh/crash/parser/tokens"
 )
 
 func (s *Shell) Eval(input string, out io.Writer) error {
-	tokens, err := parser.Tokenize(input)
+	tokens, err := t.Tokenize(input)
 	if err != nil {
 		return fmt.Errorf("parse error: %s\n", err)
 	}
@@ -21,7 +21,7 @@ func (s *Shell) Eval(input string, out io.Writer) error {
 	var words []string
 	for _, tok := range tokens {
 		switch tok.Kind {
-		case parser.Word:
+		case t.Word:
 			words = append(words, tok.Value)
 		default:
 			return fmt.Errorf("%v: operator not yet supported\n", tok.Kind)
