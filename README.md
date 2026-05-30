@@ -35,14 +35,14 @@ shell = "/path/to/the/bin"
 - [x] Basic REPL
 - [x] Basic Builtins
   - [x] Registry of builtins with sane api surface
-  - [ ] flags parser / splitter (tokenizer should not do this)
+  - [x] flags parser / splitter (tokenizer should not do this)
   - [x] exit
   - [x] echo
   - [x] pwd
   - [x] cd
   - [x] type
   - [x] command
-    - [ ] `-v` arg <!-- needed for silent bin discovery, I don't want to rely on `which` too hard here -->
+    - [x] `-v` arg <!-- needed for silent bin discovery, I don't want to rely on `which` too hard here -->
   - [ ] alias
 - [x] Lexer 
   - [x] Basic Quoting
