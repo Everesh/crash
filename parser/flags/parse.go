@@ -200,7 +200,7 @@ func checkGroupGuards(parsed *Parsed, spec Spec) error {
 		}
 
 		if group.Exclusive && count > 1 {
-			return fmt.Errorf("flags: multiple mutualy exclusive flags set from [%s]\n", strings.Join(group.Flags, ","))
+			return fmt.Errorf("flags: multiple mutually exclusive flags set from [%s]\n", strings.Join(group.Flags, ","))
 		}
 
 		if group.Required && count < 1 {

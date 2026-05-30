@@ -63,12 +63,7 @@ func handleCommand(out io.Writer, args []string) error {
 		fmt.Fprintf(out, "%s\n", bin)
 
 	default:
-		var trailingOperands = make([]string, 0)
-		if len(parsed.Operands) > 1 {
-			trailingOperands = append(trailingOperands, parsed.Operands[1:]...)
-		}
-
-		child := exec.Command(bin, trailingOperands...)
+		child := exec.Command(bin, parsed.Operands[1:]...)
 		child.Stdin = os.Stdin
 		child.Stdout = out
 		child.Stderr = os.Stderr
@@ -107,7 +102,7 @@ func lookInCustomPath(file string, customPath string) (string, error) {
 
 	dirs := filepath.SplitList(customPath)
 	for _, dir := range dirs {
-		// guard for working dir reference in path (either 2 semicolones back to back or a tailing one)
+		// guard for working dir reference in path (either 2 colons back to back or a trailing one)
 		if dir == "" {
 			dir = "."
 		}
