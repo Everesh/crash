@@ -6,6 +6,7 @@ import (
 )
 
 func Parse(args []string, spec Spec) (Parsed, error) {
+
 	parsed := Parsed{
 		Operands: make([]string, 0),
 		aliases:  make(map[string]Flag),
@@ -16,6 +17,23 @@ func Parse(args []string, spec Spec) (Parsed, error) {
 		return Parsed{}, err
 	}
 
+	if err := resolveFlags(&parsed, args); err != nil {
+		return Parsed{}, err
+	}
+
+	if err := checkFlagGuards(&parsed, spec); err != nil {
+		return Parsed{}, err
+	}
+
+	if err := checkGroupGuards(&parsed, spec); err != nil {
+		return Parsed{}, err
+	}
+
+	return parsed, nil
+}
+
+func resolveFlags(parsed *Parsed, args []string) error {
+
 	for i := 0; i < len(args); i++ {
 		arg := args[i]
 
@@ -24,29 +42,31 @@ func Parse(args []string, spec Spec) (Parsed, error) {
 			if i+1 < len(args) {
 				parsed.Operands = append(parsed.Operands, args[i+1:]...)
 			}
-			return parsed, nil
+			return nil
 
 		case strings.HasPrefix(arg, "--"):
-			parseLong(&parsed, &i, args)
+			if err := parseLong(parsed, &i, args); err != nil {
+				return err
+			}
 
 		case strings.HasPrefix(arg, "-") && arg != "-":
 			if len(arg) > 2 {
-				if err := parseShortCluster(&parsed, &i, args); err != nil {
-					return Parsed{}, err
+				if err := parseShortCluster(parsed, &i, args); err != nil {
+					return err
 				}
 			} else {
-				if err := parseShort(&parsed, &i, rune(arg[1]), args); err != nil {
-					return Parsed{}, err
+				if err := parseShort(parsed, &i, rune(arg[1]), args); err != nil {
+					return err
 				}
 			}
 
 		default:
 			parsed.Operands = append(parsed.Operands, args[i:]...)
-			return parsed, nil
+			return nil
 		}
 	}
 
-	return parsed, nil
+	return nil
 }
 
 func populateAliases(parsed *Parsed, spec Spec) error {
@@ -166,6 +186,50 @@ func parseLong(parsed *Parsed, i *int, args []string) error {
 		parsed.values[flag] = parts[1]
 	default:
 		return fmt.Errorf("flags: parseLong: --%s: unexpected error, I have no idea how you could have got here, hf troubleshooting :)\n", str)
+	}
+
+	return nil
+}
+
+func checkGroupGuards(parsed *Parsed, spec Spec) error {
+	for _, group := range spec.Groups {
+		count := 0
+		for _, member := range group.Flags {
+			if parsed.Has(member) {
+				count++
+			}
+		}
+
+		if group.Exclusive && count > 1 {
+			return fmt.Errorf("flags: multiple mutualy exclusive flags set from [%s]", strings.Join(group.Flags, ","))
+		}
+
+		if group.Required && count < 1 {
+			return fmt.Errorf("flags: at least one of [%s] must be set", strings.Join(group.Flags, ","))
+		}
+	}
+
+	return nil
+}
+
+func checkFlagGuards(parsed *Parsed, spec Spec) error {
+	for _, flag := range spec.Flags {
+		var name, dashes string
+		if flag.Short != 0 {
+			name = string(flag.Short)
+			dashes = "-"
+		} else if flag.Long != "" {
+			name = flag.Long
+			dashes = "--"
+		} else {
+			// this could throw, but I opted to not care if a flag is unreachable due to not having
+			// neither short nor long set, the alias will not be created either way
+			continue
+		}
+
+		if flag.Required && !parsed.Has(name) {
+			return fmt.Errorf("flags: required flag not set %s%s", dashes, name)
+		}
 	}
 
 	return nil
