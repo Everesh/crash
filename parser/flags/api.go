@@ -1,5 +1,7 @@
 package flags
 
+import "fmt"
+
 type Flag struct {
 	Long         string
 	Short        rune
@@ -44,6 +46,12 @@ func (p Parsed) Value(name string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	return p.values[idx], nil
+	if !p.flags[idx].Parametrized {
+		return "", fmt.Errorf("flags: flag %s is not parametrized", name)
+	}
+	v, ok := p.values[idx]
+	if !ok {
+		return "", fmt.Errorf("flags: flag %s was not set", name)
+	}
+	return v, nil
 }
