@@ -24,10 +24,10 @@ func Parse(args []string, spec Spec) (Parsed, error) {
 			if i+1 < len(args) {
 				parsed.Operands = append(parsed.Operands, args[i+1:]...)
 			}
-			break
+			return parsed, nil
 
 		case strings.HasPrefix(arg, "--"):
-			parseLong(&parsed, &i, spec, args)
+			parseLong(&parsed, &i, args)
 
 		case strings.HasPrefix(arg, "-") && arg != "-":
 			if len(arg) > 2 {
@@ -42,7 +42,7 @@ func Parse(args []string, spec Spec) (Parsed, error) {
 
 		default:
 			parsed.Operands = append(parsed.Operands, args[i:]...)
-			break
+			return parsed, nil
 		}
 	}
 
@@ -56,14 +56,14 @@ func populateAliases(parsed *Parsed, spec Spec) error {
 			shortStr := string(flag.Short)
 
 			if _, exists := parsed.aliases[shortStr]; exists {
-				return fmt.Errorf("flags: overloaded short flag -%s", shortStr)
+				return fmt.Errorf("flags: overloaded short flag -%s\n", shortStr)
 			}
 			parsed.aliases[shortStr] = flag
 		}
 
 		if flag.Long != "" {
 			if _, exists := parsed.aliases[flag.Long]; exists {
-				return fmt.Errorf("flags: overloaded long flag --%s", flag.Long)
+				return fmt.Errorf("flags: overloaded long flag --%s\n", flag.Long)
 			}
 			parsed.aliases[flag.Long] = flag
 		}
@@ -76,7 +76,7 @@ func (p Parsed) resolve(name string) (Flag, error) {
 	if c, ok := p.aliases[name]; ok {
 		return c, nil
 	}
-	return Flag{}, fmt.Errorf("flags: failed to resolve flag %s", name)
+	return Flag{}, fmt.Errorf("flags: failed to resolve flag %s\n", name)
 }
 
 func parseShort(parsed *Parsed, i *int, r rune, args []string) error {
@@ -84,17 +84,17 @@ func parseShort(parsed *Parsed, i *int, r rune, args []string) error {
 	flag, exists := parsed.aliases[shortStr]
 
 	if !exists {
-		return fmt.Errorf("flags: unknown flag -%s", shortStr)
+		return fmt.Errorf("flags: unknown flag -%s\n", shortStr)
 	}
 
 	if _, exists := parsed.values[flag]; exists {
-		return fmt.Errorf("flags: flag -%s was set multiple times", shortStr)
+		return fmt.Errorf("flags: flag -%s was set multiple times\n", shortStr)
 	}
 
 	if flag.Parametrized {
 		*i++ // expedite index one position
 		if *i >= len(args) {
-			return fmt.Errorf("flags: expected -%s to be followed by a parameter, found EOF", shortStr)
+			return fmt.Errorf("flags: expected -%s to be followed by a parameter, found EOF\n", shortStr)
 		}
 		parsed.values[flag] = args[*i]
 	} else {
@@ -114,16 +114,58 @@ func parseShortCluster(parsed *Parsed, i *int, args []string) error {
 		// this check is a duplicate from the parseShort
 		// since we need to see if the flag is parametrized its unavoidable here
 		if !exists {
-			return fmt.Errorf("flags: unknown flag -%s", shortStr)
+			return fmt.Errorf("flags: unknown flag -%s\n", shortStr)
 		}
 
 		if flag.Parametrized && idx != len(runes)-1 {
-			return fmt.Errorf("flags: flag -%s requiring a parameter found in the middle of -%s, flags with parameter can only be at the very end of a cluster", shortStr, args[*i])
+			return fmt.Errorf("flags: flag -%s requiring a parameter found in the middle of -%s, flags with parameter can only be at the very end of a cluster\n", shortStr, args[*i])
 		}
 
 		if err := parseShort(parsed, i, r, args); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func parseLong(parsed *Parsed, i *int, args []string) error {
+	str := args[*i][2:] // strip leading --
+	parts := strings.SplitN(str, "=", 2)
+
+	if len(parts[0]) < 1 {
+		return fmt.Errorf("flags: parseLong: --%s: long flag of 0 length", str)
+	}
+
+	flag, exists := parsed.aliases[parts[0]]
+
+	if !exists {
+		return fmt.Errorf("flags: unknown flag --%s", parts[0])
+	}
+
+	if _, exists := parsed.values[flag]; exists {
+		return fmt.Errorf("flags: flag --%s was set multiple times", parts[0])
+	}
+
+	if !flag.Parametrized {
+		if len(parts) > 1 {
+			return fmt.Errorf("flags: flag --%s does not accept a parameter", parts[0])
+		}
+		parsed.values[flag] = ""
+		return nil
+	}
+
+	switch len(parts) {
+	case 1:
+		*i++
+		if *i >= len(args) {
+			return fmt.Errorf("flags: expected --%s to be followed by a parameter, found EOF", parts[0])
+		}
+		parsed.values[flag] = args[*i]
+	case 2:
+		parsed.values[flag] = parts[1]
+	default:
+		return fmt.Errorf("flags: parseLong: --%s: unexpected error, I have no idea how you could have got here, hf troubleshooting :)\n", str)
 	}
 
 	return nil
