@@ -2,7 +2,7 @@ package flags
 
 type Flag struct {
 	Long         string
-	Short        byte
+	Short        rune
 	Required     bool
 	Parametrized bool
 }
@@ -20,12 +20,17 @@ type Spec struct {
 
 type Parsed struct {
 	Operands []string
-	aliases  map[string]string // short/long name -> canonical name
-	set      map[string]string // canonical name -> value ("" for bools)
+	aliases  map[string]Flag
+	values   map[Flag]string
 }
 
 func (p Parsed) Has(name string) bool {
-	_, ok := p.set[p.resolve(name)]
+	flag, err := p.resolve(name)
+	if err != nil {
+		return false
+	}
+
+	_, ok := p.values[flag]
 	return ok
 }
 
@@ -33,8 +38,11 @@ func (p Parsed) Bool(name string) bool {
 	return p.Has(name)
 }
 
-func (p Parsed) Value(name string) string {
-	return p.set[p.resolve(name)]
-	// bools and non-existent flags return "", but since "" is also a valid value for
-	// parametrized flags, Im not going to guard against this. Best of luck when debugging •ᴗ•
+func (p Parsed) Value(name string) (string, error) {
+	flag, err := p.resolve(name)
+	if err != nil {
+		return "", err
+	}
+
+	return p.values[flag], nil
 }
