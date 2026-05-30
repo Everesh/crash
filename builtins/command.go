@@ -114,12 +114,7 @@ func lookInCustomPath(file string, customPath string) (string, error) {
 		path := filepath.Join(dir, file)
 
 		if d, err := os.Stat(path); err == nil {
-			// this might look weird but very simply, m is the permision metadata of a file,
-			// that data is store as 3 octals, or in binary 111 111 111, we are checking if the file is executable,
-			// executables have at least one of these set xx1 xx1 xx1, we can create a mask of 001 001 001 and do
-			// a bitwise AND (&) on the data, the 0111 is the octal representation of the mask, it could also
-			// be written in binary as 0b001001001 or in decimal as 73, point is, different bases are fun :)
-			if m := d.Mode(); !m.IsDir() && m&0111 != 0 {
+			if m := d.Mode(); !m.IsDir() {
 				return path, nil
 			}
 		}
