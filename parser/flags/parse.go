@@ -9,8 +9,9 @@ func Parse(args []string, spec Spec) (Parsed, error) {
 
 	parsed := Parsed{
 		Operands: make([]string, 0),
-		aliases:  make(map[string]Flag),
-		values:   make(map[Flag]string),
+		flags:    spec.Flags,
+		aliases:  make(map[string]int),
+		values:   make(map[int]string),
 	}
 
 	if err := populateAliases(&parsed, spec); err != nil {
@@ -70,7 +71,7 @@ func resolveFlags(parsed *Parsed, args []string) error {
 }
 
 func populateAliases(parsed *Parsed, spec Spec) error {
-	for _, flag := range spec.Flags {
+	for i, flag := range spec.Flags {
 
 		if flag.Short != 0 {
 			shortStr := string(flag.Short)
@@ -78,47 +79,47 @@ func populateAliases(parsed *Parsed, spec Spec) error {
 			if _, exists := parsed.aliases[shortStr]; exists {
 				return fmt.Errorf("flags: overloaded short flag -%s\n", shortStr)
 			}
-			parsed.aliases[shortStr] = flag
+			parsed.aliases[shortStr] = i
 		}
 
 		if flag.Long != "" {
 			if _, exists := parsed.aliases[flag.Long]; exists {
 				return fmt.Errorf("flags: overloaded long flag --%s\n", flag.Long)
 			}
-			parsed.aliases[flag.Long] = flag
+			parsed.aliases[flag.Long] = i
 		}
 	}
 
 	return nil
 }
 
-func (p Parsed) resolve(name string) (Flag, error) {
-	if c, ok := p.aliases[name]; ok {
-		return c, nil
+func (p Parsed) resolve(name string) (int, error) {
+	if idx, ok := p.aliases[name]; ok {
+		return idx, nil
 	}
-	return Flag{}, fmt.Errorf("flags: failed to resolve flag %s\n", name)
+	return -1, fmt.Errorf("flags: failed to resolve flag %s\n", name)
 }
 
 func parseShort(parsed *Parsed, i *int, r rune, args []string) error {
 	shortStr := string(r)
-	flag, exists := parsed.aliases[shortStr]
+	idx, exists := parsed.aliases[shortStr]
 
 	if !exists {
 		return fmt.Errorf("flags: unknown flag -%s\n", shortStr)
 	}
 
-	if _, exists := parsed.values[flag]; exists {
+	if _, exists := parsed.values[idx]; exists {
 		return fmt.Errorf("flags: flag -%s was set multiple times\n", shortStr)
 	}
 
-	if flag.Parametrized {
-		*i++ // expedite index one position
+	if parsed.flags[idx].Parametrized {
+		*i++
 		if *i >= len(args) {
 			return fmt.Errorf("flags: expected -%s to be followed by a parameter, found EOF\n", shortStr)
 		}
-		parsed.values[flag] = args[*i]
+		parsed.values[idx] = args[*i]
 	} else {
-		parsed.values[flag] = "" // Boolean flag set
+		parsed.values[idx] = ""
 	}
 
 	return nil
@@ -127,17 +128,15 @@ func parseShort(parsed *Parsed, i *int, r rune, args []string) error {
 func parseShortCluster(parsed *Parsed, i *int, args []string) error {
 	runes := []rune(args[*i][1:])
 
-	for idx, r := range runes {
+	for pos, r := range runes {
 		shortStr := string(r)
-		flag, exists := parsed.aliases[shortStr]
+		flagIdx, exists := parsed.aliases[shortStr]
 
-		// this check is a duplicate from the parseShort
-		// since we need to see if the flag is parametrized its unavoidable here
 		if !exists {
 			return fmt.Errorf("flags: unknown flag -%s\n", shortStr)
 		}
 
-		if flag.Parametrized && idx != len(runes)-1 {
+		if parsed.flags[flagIdx].Parametrized && pos != len(runes)-1 {
 			return fmt.Errorf("flags: flag -%s requiring a parameter found in the middle of -%s, flags with parameter can only be at the very end of a cluster\n", shortStr, args[*i])
 		}
 
@@ -157,21 +156,21 @@ func parseLong(parsed *Parsed, i *int, args []string) error {
 		return fmt.Errorf("flags: parseLong: --%s: long flag of 0 length\n", str)
 	}
 
-	flag, exists := parsed.aliases[parts[0]]
+	flagIdx, exists := parsed.aliases[parts[0]]
 
 	if !exists {
 		return fmt.Errorf("flags: unknown flag --%s\n", parts[0])
 	}
 
-	if _, exists := parsed.values[flag]; exists {
+	if _, exists := parsed.values[flagIdx]; exists {
 		return fmt.Errorf("flags: flag --%s was set multiple times\n", parts[0])
 	}
 
-	if !flag.Parametrized {
+	if !parsed.flags[flagIdx].Parametrized {
 		if len(parts) > 1 {
 			return fmt.Errorf("flags: flag --%s does not accept a parameter\n", parts[0])
 		}
-		parsed.values[flag] = ""
+		parsed.values[flagIdx] = ""
 		return nil
 	}
 
@@ -181,11 +180,11 @@ func parseLong(parsed *Parsed, i *int, args []string) error {
 		if *i >= len(args) {
 			return fmt.Errorf("flags: expected --%s to be followed by a parameter, found EOF\n", parts[0])
 		}
-		parsed.values[flag] = args[*i]
+		parsed.values[flagIdx] = args[*i]
 	case 2:
-		parsed.values[flag] = parts[1]
+		parsed.values[flagIdx] = parts[1]
 	default:
-		return fmt.Errorf("flags: parseLong: --%s: unexpected error, I have no idea how you could have got here, hf troubleshooting :)\n", str)
+		panic("flags: parseLong: unreachable — SplitN(s, \"=\", 2) cannot return more than 2 parts")
 	}
 
 	return nil
@@ -222,8 +221,6 @@ func checkFlagGuards(parsed *Parsed, spec Spec) error {
 			name = flag.Long
 			dashes = "--"
 		} else {
-			// this could throw, but I opted to not care if a flag is unreachable due to not having
-			// neither short nor long set, the alias will not be created either way
 			continue
 		}
 

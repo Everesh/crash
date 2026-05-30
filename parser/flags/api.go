@@ -20,17 +20,18 @@ type Spec struct {
 
 type Parsed struct {
 	Operands []string
-	aliases  map[string]Flag
-	values   map[Flag]string
+	flags    []Flag         // indexed copy of spec.Flags
+	aliases  map[string]int // name -> flags index
+	values   map[int]string // flags index -> value
 }
 
 func (p Parsed) Has(name string) bool {
-	flag, err := p.resolve(name)
+	idx, err := p.resolve(name)
 	if err != nil {
 		return false
 	}
 
-	_, ok := p.values[flag]
+	_, ok := p.values[idx]
 	return ok
 }
 
@@ -39,10 +40,10 @@ func (p Parsed) Bool(name string) bool {
 }
 
 func (p Parsed) Value(name string) (string, error) {
-	flag, err := p.resolve(name)
+	idx, err := p.resolve(name)
 	if err != nil {
 		return "", err
 	}
 
-	return p.values[flag], nil
+	return p.values[idx], nil
 }
