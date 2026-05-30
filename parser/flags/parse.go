@@ -77,14 +77,14 @@ func populateAliases(parsed *Parsed, spec Spec) error {
 			shortStr := string(flag.Short)
 
 			if _, exists := parsed.aliases[shortStr]; exists {
-				return fmt.Errorf("flags: overloaded short flag -%s\n", shortStr)
+				return fmt.Errorf("flags: overloaded short flag -%s", shortStr)
 			}
 			parsed.aliases[shortStr] = i
 		}
 
 		if flag.Long != "" {
 			if _, exists := parsed.aliases[flag.Long]; exists {
-				return fmt.Errorf("flags: overloaded long flag --%s\n", flag.Long)
+				return fmt.Errorf("flags: overloaded long flag --%s", flag.Long)
 			}
 			parsed.aliases[flag.Long] = i
 		}
@@ -97,7 +97,7 @@ func (p Parsed) resolve(name string) (int, error) {
 	if idx, ok := p.aliases[name]; ok {
 		return idx, nil
 	}
-	return -1, fmt.Errorf("flags: failed to resolve flag %s\n", name)
+	return -1, fmt.Errorf("flags: failed to resolve flag %s", name)
 }
 
 func parseShort(parsed *Parsed, i *int, r rune, args []string) error {
@@ -105,17 +105,17 @@ func parseShort(parsed *Parsed, i *int, r rune, args []string) error {
 	idx, exists := parsed.aliases[shortStr]
 
 	if !exists {
-		return fmt.Errorf("flags: unknown flag -%s\n", shortStr)
+		return fmt.Errorf("flags: unknown flag -%s", shortStr)
 	}
 
 	if _, exists := parsed.values[idx]; exists {
-		return fmt.Errorf("flags: flag -%s was set multiple times\n", shortStr)
+		return fmt.Errorf("flags: flag -%s was set multiple times", shortStr)
 	}
 
 	if parsed.flags[idx].Parametrized {
 		*i++
 		if *i >= len(args) {
-			return fmt.Errorf("flags: expected -%s to be followed by a parameter, found EOF\n", shortStr)
+			return fmt.Errorf("flags: expected -%s to be followed by a parameter, found EOF", shortStr)
 		}
 		parsed.values[idx] = args[*i]
 	} else {
@@ -133,11 +133,11 @@ func parseShortCluster(parsed *Parsed, i *int, args []string) error {
 		flagIdx, exists := parsed.aliases[shortStr]
 
 		if !exists {
-			return fmt.Errorf("flags: unknown flag -%s\n", shortStr)
+			return fmt.Errorf("flags: unknown flag -%s", shortStr)
 		}
 
 		if parsed.flags[flagIdx].Parametrized && pos != len(runes)-1 {
-			return fmt.Errorf("flags: flag -%s requiring a parameter found in the middle of -%s, flags with parameter can only be at the very end of a cluster\n", shortStr, args[*i])
+			return fmt.Errorf("flags: flag -%s requiring a parameter found in the middle of -%s, flags with parameter can only be at the very end of a cluster", shortStr, args[*i])
 		}
 
 		if err := parseShort(parsed, i, r, args); err != nil {
@@ -153,22 +153,22 @@ func parseLong(parsed *Parsed, i *int, args []string) error {
 	parts := strings.SplitN(str, "=", 2)
 
 	if len(parts[0]) < 1 {
-		return fmt.Errorf("flags: parseLong: --%s: long flag of 0 length\n", str)
+		return fmt.Errorf("flags: parseLong: --%s: long flag of 0 length", str)
 	}
 
 	flagIdx, exists := parsed.aliases[parts[0]]
 
 	if !exists {
-		return fmt.Errorf("flags: unknown flag --%s\n", parts[0])
+		return fmt.Errorf("flags: unknown flag --%s", parts[0])
 	}
 
 	if _, exists := parsed.values[flagIdx]; exists {
-		return fmt.Errorf("flags: flag --%s was set multiple times\n", parts[0])
+		return fmt.Errorf("flags: flag --%s was set multiple times", parts[0])
 	}
 
 	if !parsed.flags[flagIdx].Parametrized {
 		if len(parts) > 1 {
-			return fmt.Errorf("flags: flag --%s does not accept a parameter\n", parts[0])
+			return fmt.Errorf("flags: flag --%s does not accept a parameter", parts[0])
 		}
 		parsed.values[flagIdx] = ""
 		return nil
@@ -178,7 +178,7 @@ func parseLong(parsed *Parsed, i *int, args []string) error {
 	case 1:
 		*i++
 		if *i >= len(args) {
-			return fmt.Errorf("flags: expected --%s to be followed by a parameter, found EOF\n", parts[0])
+			return fmt.Errorf("flags: expected --%s to be followed by a parameter, found EOF", parts[0])
 		}
 		parsed.values[flagIdx] = args[*i]
 	case 2:
@@ -200,11 +200,11 @@ func checkGroupGuards(parsed *Parsed, spec Spec) error {
 		}
 
 		if group.Exclusive && count > 1 {
-			return fmt.Errorf("flags: multiple mutually exclusive flags set from [%s]\n", strings.Join(group.Flags, ","))
+			return fmt.Errorf("flags: multiple mutually exclusive flags set from [%s]", strings.Join(group.Flags, ","))
 		}
 
 		if group.Required && count < 1 {
-			return fmt.Errorf("flags: at least one of [%s] must be set\n", strings.Join(group.Flags, ","))
+			return fmt.Errorf("flags: at least one of [%s] must be set", strings.Join(group.Flags, ","))
 		}
 	}
 
@@ -225,7 +225,7 @@ func checkFlagGuards(parsed *Parsed, spec Spec) error {
 		}
 
 		if flag.Required && !parsed.Has(name) {
-			return fmt.Errorf("flags: required flag not set %s%s\n", dashes, name)
+			return fmt.Errorf("flags: required flag not set %s%s", dashes, name)
 		}
 	}
 

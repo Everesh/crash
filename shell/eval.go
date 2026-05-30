@@ -12,7 +12,7 @@ import (
 func (s *Shell) Eval(input string, out io.Writer) error {
 	tokens, err := t.Tokenize(input)
 	if err != nil {
-		return fmt.Errorf("parse error: %s\n", err)
+		return fmt.Errorf("parse error: %w", err)
 	}
 	if len(tokens) == 0 {
 		return nil
@@ -24,7 +24,7 @@ func (s *Shell) Eval(input string, out io.Writer) error {
 		case t.Word:
 			words = append(words, tok.Value)
 		default:
-			return fmt.Errorf("%v: operator not yet supported\n", tok.Kind)
+			return fmt.Errorf("%v: operator not yet supported", tok.Kind)
 		}
 	}
 
@@ -43,7 +43,7 @@ func (s *Shell) Eval(input string, out io.Writer) error {
 	}
 
 	if _, err := exec.LookPath(cmd); err != nil {
-		return fmt.Errorf("%s: command not found\n", cmd)
+		return fmt.Errorf("%s: command not found", cmd)
 	}
 
 	child := exec.Command(cmd, args...)

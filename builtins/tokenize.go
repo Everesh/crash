@@ -10,7 +10,7 @@ import (
 
 func handleTokenize(out io.Writer, args []string) error {
 	if len(args) < 1 {
-		return fmt.Errorf("tokenize: missing argument(s)\n")
+		return fmt.Errorf("tokenize: missing argument(s)")
 	}
 
 	var b strings.Builder
@@ -20,7 +20,7 @@ func handleTokenize(out io.Writer, args []string) error {
 
 		tokens, err := t.Tokenize(str)
 		if err != nil {
-			return fmt.Errorf("tokenize: %s\n", err)
+			return fmt.Errorf("tokenize: %s", err)
 		}
 
 		for _, tok := range tokens {

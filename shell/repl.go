@@ -49,7 +49,7 @@ func (s *Shell) Repl() {
 				rl.Close()
 				os.Exit(exitErr.Code)
 			}
-			fmt.Fprint(os.Stderr, err)
+			fmt.Fprintln(os.Stderr, err)
 		}
 	}
 }

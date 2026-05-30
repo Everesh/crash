@@ -38,7 +38,7 @@ func handleCommand(out io.Writer, args []string) error {
 	}
 
 	if len(parsed.Operands) < 1 {
-		return fmt.Errorf("command: missing argument(s)\n")
+		return fmt.Errorf("command: missing argument(s)")
 	}
 
 	cmd := parsed.Operands[0]
@@ -52,7 +52,7 @@ func handleCommand(out io.Writer, args []string) error {
 
 	bin, err := lookInCustomPath(cmd, path)
 	if err != nil {
-		return fmt.Errorf("command: %s: no such command in path\n", cmd)
+		return fmt.Errorf("command: %s: no such command in path", cmd)
 	}
 
 	switch {
@@ -78,7 +78,7 @@ func handleCommand(out io.Writer, args []string) error {
 		child.Env = cleanEnv
 
 		if err := child.Run(); err != nil {
-			return fmt.Errorf("command: error running command: %w\n", err)
+			return fmt.Errorf("command: error running command: %w", err)
 		}
 	}
 

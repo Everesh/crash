@@ -8,11 +8,11 @@ import (
 
 func handleType(out io.Writer, args []string, builtins Registry) error {
 	if len(args) < 1 {
-		return fmt.Errorf("type: missing argument\n")
+		return fmt.Errorf("type: missing argument")
 	}
 
 	if len(args) > 1 {
-		return fmt.Errorf("type: too many arguments\n")
+		return fmt.Errorf("type: too many arguments")
 	}
 
 	cmd := args[0]

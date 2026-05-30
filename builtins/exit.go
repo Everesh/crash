@@ -15,15 +15,15 @@ func handleExit(_ io.Writer, args []string) error {
 		return &ExitError{Code: 0}
 	}
 	if len(args) > 1 {
-		return fmt.Errorf("exit: too many arguments\n")
+		return fmt.Errorf("exit: too many arguments")
 	}
 
 	code, err := strconv.Atoi(args[0])
 	if err != nil {
-		return fmt.Errorf("exit: %s: invalid argument\n", args[0])
+		return fmt.Errorf("exit: %s: invalid argument", args[0])
 	}
 	if code < 0 || code > 255 {
-		return fmt.Errorf("exit: %d: out of range 0-255\n", code)
+		return fmt.Errorf("exit: %d: out of range 0-255", code)
 	}
 
 	return &ExitError{Code: code}
