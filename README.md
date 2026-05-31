@@ -1,7 +1,7 @@
 # crash
 POSIX-adjacent shell, heavy WIP
 
-[![asciicast](https://asciinema.org/a/8sF6LIQqXPMxatdA.svg)](https://asciinema.org/a/8sF6LIQqXPMxatdA)
+![preview gif](https://github.com/user-attachments/assets/e84ba3de-0614-4577-8475-793907e1ef8d)
 
 ## Installation
 
