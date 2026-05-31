@@ -1,15 +1,16 @@
 package builtins
 
 import (
-	"fmt"
-	"io"
 	"os"
 	"strings"
+
+	s "github.com/Everesh/crash/streams"
 )
 
-func handleCd(_ io.Writer, args []string) error {
+func handleCd(io s.Io, args []string) {
 	if len(args) > 1 {
-		return fmt.Errorf("cd: too many arguments")
+		io.WriteErr("cd: too many arguments")
+		return
 	}
 
 	target := os.Getenv("HOME")
@@ -18,10 +19,8 @@ func handleCd(_ io.Writer, args []string) error {
 	}
 
 	if err := os.Chdir(target); err != nil {
-		return fmt.Errorf("cd: %s: No such file or directory", target)
+		io.WriteErr("cd: %s: No such file or directory", target)
 	}
-
-	return nil
 }
 
 func tldrCd() string {

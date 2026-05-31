@@ -2,30 +2,29 @@ package builtins
 
 import (
 	"fmt"
-	"io"
 	"os/exec"
+
+	s "github.com/Everesh/crash/streams"
 )
 
-func handleType(out io.Writer, args []string, builtins Registry) error {
+func handleType(io s.Io, args []string, builtins Registry) {
 	if len(args) < 1 {
-		return fmt.Errorf("type: missing argument")
+		io.WriteErr("type: missing argument")
+		return
 	}
-
 	if len(args) > 1 {
-		return fmt.Errorf("type: too many arguments")
+		io.WriteErr("type: too many arguments")
+		return
 	}
 
 	cmd := args[0]
 
 	if _, exists := builtins[cmd]; exists {
-		_, err := fmt.Fprintf(out, "%s is a shell builtin\n", cmd)
-		return err
+		fmt.Fprintf(io.Out, "%s is a shell builtin\n", cmd)
 	} else if path, _ := exec.LookPath(cmd); path != "" {
-		_, err := fmt.Fprintf(out, "%s is %s\n", cmd, path)
-		return err
+		fmt.Fprintf(io.Out, "%s is %s\n", cmd, path)
 	} else {
-		_, err := fmt.Fprintf(out, "%s: not found\n", cmd)
-		return err
+		fmt.Fprintf(io.Out, "%s: not found\n", cmd)
 	}
 }
 

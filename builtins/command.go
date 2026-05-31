@@ -1,14 +1,15 @@
 package builtins
 
 import (
+	"errors"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
 	f "github.com/Everesh/crash/parser/flags"
+	s "github.com/Everesh/crash/streams"
 )
 
 var specCommand = f.Spec{
@@ -31,14 +32,16 @@ var specCommand = f.Spec{
 	},
 }
 
-func handleCommand(out io.Writer, args []string) error {
+func handleCommand(io s.Io, args []string) {
 	parsed, err := f.Parse(args, specCommand)
 	if err != nil {
-		return err
+		io.WriteErr("%s", err)
+		return
 	}
 
 	if len(parsed.Operands) < 1 {
-		return fmt.Errorf("command: missing argument(s)")
+		io.WriteErr("command: missing argument(s)")
+		return
 	}
 
 	cmd := parsed.Operands[0]
@@ -52,21 +55,22 @@ func handleCommand(out io.Writer, args []string) error {
 
 	bin, err := lookInCustomPath(cmd, path)
 	if err != nil {
-		return fmt.Errorf("command: %s: no such command in path", cmd)
+		io.WriteErr("command: %s: no such command in path", cmd)
+		return
 	}
 
 	switch {
 	case parsed.Bool("V"):
-		fmt.Fprintf(out, "%s is %s\n", cmd, bin)
+		fmt.Fprintf(io.Out, "%s is %s\n", cmd, bin)
 
 	case parsed.Bool("v"):
-		fmt.Fprintf(out, "%s\n", bin)
+		fmt.Fprintf(io.Out, "%s\n", bin)
 
 	default:
 		child := exec.Command(bin, parsed.Operands[1:]...)
-		child.Stdin = os.Stdin
-		child.Stdout = out
-		child.Stderr = os.Stderr
+		child.Stdin = io.In
+		child.Stdout = io.Out
+		child.Stderr = io.Err
 
 		var cleanEnv []string
 		for _, env := range os.Environ() {
@@ -78,11 +82,12 @@ func handleCommand(out io.Writer, args []string) error {
 		child.Env = cleanEnv
 
 		if err := child.Run(); err != nil {
-			return fmt.Errorf("command: error running command: %w", err)
+			var exitErr *exec.ExitError
+			if !errors.As(err, &exitErr) {
+				io.WriteErr("command: %s", err)
+			}
 		}
 	}
-
-	return nil
 }
 
 func tldrCommand() string {

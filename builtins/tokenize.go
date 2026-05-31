@@ -2,15 +2,16 @@ package builtins
 
 import (
 	"fmt"
-	"io"
 	"strings"
 
 	t "github.com/Everesh/crash/parser/tokens"
+	s "github.com/Everesh/crash/streams"
 )
 
-func handleTokenize(out io.Writer, args []string) error {
+func handleTokenize(io s.Io, args []string) {
 	if len(args) < 1 {
-		return fmt.Errorf("tokenize: missing argument(s)")
+		io.WriteErr("tokenize: missing argument(s)")
+		return
 	}
 
 	var b strings.Builder
@@ -20,22 +21,22 @@ func handleTokenize(out io.Writer, args []string) error {
 
 		tokens, err := t.Tokenize(str)
 		if err != nil {
-			return fmt.Errorf("tokenize: %s", err)
+			io.WriteErr("tokenize: %s", err)
+			return
 		}
 
 		for _, tok := range tokens {
 			if tok.Kind == t.Word {
-				b.WriteString(fmt.Sprintf("  %v(\"%s\"),\n", tok.Kind, tok.Value))
+				fmt.Fprintf(&b, "  %v(\"%s\"),\n", tok.Kind, tok.Value)
 			} else {
-				b.WriteString(fmt.Sprintf("  %v\n", tok.Kind))
+				fmt.Fprintf(&b, "  %v\n", tok.Kind)
 			}
 		}
 
 		b.WriteString("],\n")
 	}
 
-	fmt.Fprint(out, b.String())
-	return nil
+	fmt.Fprint(io.Out, b.String())
 }
 
 func tldrTokenize() string {

@@ -1,22 +1,20 @@
 package shell
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"os"
 	"strings"
 
-	"github.com/Everesh/crash/builtins"
 	"github.com/Everesh/crash/config"
 	"github.com/chzyer/readline"
 )
 
-func (s *Shell) Repl() {
+func (sh *Shell) Repl() {
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt:       config.PS1,
 		VimMode:      config.VimMode,
-		AutoComplete: completer(s),
+		AutoComplete: completer(sh),
 	})
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "readline:", err)
@@ -24,13 +22,14 @@ func (s *Shell) Repl() {
 	}
 	defer rl.Close()
 
+	handler := signalHandler{rl}
+
 	for {
 		line, err := readLine(rl)
 		if err == readline.ErrInterrupt {
 			continue
 		}
 		if err == io.EOF {
-			fmt.Println()
 			return
 		}
 		if err != nil {
@@ -43,13 +42,10 @@ func (s *Shell) Repl() {
 			continue
 		}
 
-		if err := s.Eval(line, os.Stdout); err != nil {
-			var exitErr *builtins.ExitError
-			if errors.As(err, &exitErr) {
-				rl.Close()
-				os.Exit(exitErr.Code)
-			}
-			fmt.Fprintln(os.Stderr, err)
+		sh.Eval(line)
+
+		for _, cmd := range sh.signals.Drain() {
+			cmd.Apply(handler)
 		}
 	}
 }
@@ -78,4 +74,13 @@ func readLine(rl *readline.Instance) (string, error) {
 	}
 	rl.SetPrompt(config.PS1)
 	return sb.String(), nil
+}
+
+// --- Signal Handler ---
+
+type signalHandler struct{ rl *readline.Instance }
+
+func (h signalHandler) Exit(code int) {
+	h.rl.Close()
+	os.Exit(code)
 }

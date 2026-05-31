@@ -1,32 +1,33 @@
 package builtins
 
 import (
-	"fmt"
-	"io"
 	"strconv"
+
+	s "github.com/Everesh/crash/streams"
+	b "github.com/Everesh/crash/streams/bus"
 )
 
-type ExitError struct{ Code int }
-
-func (e *ExitError) Error() string { return fmt.Sprintf("exit %d", e.Code) }
-
-func handleExit(_ io.Writer, args []string) error {
+func handleExit(io s.Io, args []string) {
 	if len(args) == 0 {
-		return &ExitError{Code: 0}
+		io.Send(b.ExitCmd{Code: 0})
+		return
 	}
 	if len(args) > 1 {
-		return fmt.Errorf("exit: too many arguments")
+		io.WriteErr("exit: too many arguments")
+		return
 	}
 
 	code, err := strconv.Atoi(args[0])
 	if err != nil {
-		return fmt.Errorf("exit: %s: invalid argument", args[0])
+		io.WriteErr("exit: %s: invalid argument", args[0])
+		return
 	}
 	if code < 0 || code > 255 {
-		return fmt.Errorf("exit: %d: out of range 0-255", code)
+		io.WriteErr("exit: %d: out of range 0-255", code)
+		return
 	}
 
-	return &ExitError{Code: code}
+	io.Send(b.ExitCmd{Code: code})
 }
 
 func tldrExit() string {

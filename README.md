@@ -50,7 +50,7 @@ shell = "/path/to/the/bin"
     - [ ] `?` tldr like
     - [ ] `???` man like
 - [x] Tokenizer 
-- [ ] Basic Stdio Redirection
+- [x] Basic Stdio Redirection
 - [x] Basic Completion
   - [x] Command Completion
   - [x] Filename Completion

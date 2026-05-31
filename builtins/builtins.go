@@ -1,9 +1,9 @@
 package builtins
 
-import "io"
+import s "github.com/Everesh/crash/streams"
 
 type Builtin struct {
-	Handle func(out io.Writer, args []string) error
+	Handle func(s.Io, []string)
 	Tldr   func() string // tldr.sh like help
 	Man    func() string // man like help
 }
@@ -22,7 +22,7 @@ func NewRegistry() Registry {
 
 	// registry aware
 	r["type"] = Builtin{
-		Handle: func(out io.Writer, args []string) error { return handleType(out, args, r) },
+		Handle: func(io s.Io, args []string) { handleType(io, args, r) },
 		Tldr:   tldrType,
 		Man:    manType}
 

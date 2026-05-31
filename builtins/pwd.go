@@ -2,18 +2,20 @@ package builtins
 
 import (
 	"fmt"
-	"io"
 	"os"
+
+	s "github.com/Everesh/crash/streams"
 )
 
-func handlePwd(out io.Writer, args []string) error {
+func handlePwd(io s.Io, args []string) {
 	pwd, err := os.Getwd()
 	if err != nil {
-		return fmt.Errorf("pwd: failed to fetch working directory")
+		io.WriteErr("pwd: failed to fetch working directory")
+		return
 	}
-
-	_, err = fmt.Fprintln(out, pwd)
-	return err
+	if _, err = fmt.Fprintln(io.Out, pwd); err != nil {
+		io.WriteErr("pwd: %s", err)
+	}
 }
 
 func tldrPwd() string {

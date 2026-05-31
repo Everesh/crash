@@ -2,13 +2,15 @@ package builtins
 
 import (
 	"fmt"
-	"io"
 	"strings"
+
+	s "github.com/Everesh/crash/streams"
 )
 
-func handleEcho(out io.Writer, args []string) error {
-	_, err := fmt.Fprintln(out, strings.Join(args, " "))
-	return err
+func handleEcho(io s.Io, args []string) {
+	if _, err := fmt.Fprintln(io.Out, strings.Join(args, " ")); err != nil {
+		io.WriteErr("echo: %s", err)
+	}
 }
 
 func tldrEcho() string {
