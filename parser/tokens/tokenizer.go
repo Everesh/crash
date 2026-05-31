@@ -86,7 +86,7 @@ func readOperator(l *lexer, first rune) (Token, error) {
 			return Token{Kind: And}, nil
 		}
 		// not checking for trailing space, `echo this &echo that` is valid POSIX syntax
-		return Token{}, fmt.Errorf("bare & not yet supported") // TODO
+		return Token{}, fmt.Errorf("readOperator: bare & not yet supported") // TODO
 
 	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		if r, ok := l.next(); ok && r != '>' { // the > should get consumed here, if it doesn't match we throw anyway
